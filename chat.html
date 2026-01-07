@@ -30,7 +30,7 @@ async function send() {
   document.getElementById("messages").innerHTML +=
     `<div class="msg user">You: ${msg}</div>`;
 
-  const res = await fetch("https://theriacal-myrna-smirkily.ngrok-free.dev/webhook/sales-chat", {
+  const res = await fetch("https://theriacal-myrna-smirkily.ngrok-free.dev/webhook/web-sales-chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -48,3 +48,4 @@ async function send() {
 
 </body>
 </html>
+
