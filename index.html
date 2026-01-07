@@ -44,7 +44,6 @@
 </div>
 
 <script>
-  // ✅ CREATE / REUSE SESSION ID (CRITICAL FIX)
   let sessionId = localStorage.getItem("salesbot-session-id");
 
   if (!sessionId) {
@@ -76,9 +75,20 @@
       );
 
       const data = await res.json();
+      let botReply = "No response";
 
-      messages.innerHTML +=
-        `<div class="msg bot">Bot: ${data.answer || "No response"}</div>`;
+      if (typeof data.answer === "string") {
+        botReply = data.answer;
+      } else if (typeof data.answer === "object" && data.answer?.text) {
+        botReply = data.answer.text;
+      } else if (typeof data.output === "string") {
+        botReply = data.output;
+      } else if (typeof data.message === "string") {
+        botReply = data.message;
+      }
+
+      messages.innerHTML += `<div class="msg bot">Bot: ${botReply}</div>`;
+
     } catch (err) {
       messages.innerHTML +=
         `<div class="msg bot">Bot: Error connecting to server</div>`;
@@ -88,4 +98,3 @@
 
 </body>
 </html>
-
