@@ -48,18 +48,21 @@
 </div>
 
 <script>
-  // Stable session ID (critical for n8n memory)
-  let sessionId = localStorage.getItem("salesbot-session-id");
-  if (!sessionId) {
-    sessionId = "web-" + crypto.randomUUID();
-    localStorage.setItem("salesbot-session-id", sessionId);
+  function getOrCreateSession() {
+    let sid = localStorage.getItem("salesbot-session-id");
+    if (!sid) {
+      sid = "web-" + crypto.randomUUID();
+      localStorage.setItem("salesbot-session-id", sid);
+    }
+    return sid;
   }
+
+  let sessionId = getOrCreateSession();
 
   const inputEl = document.getElementById("input");
   const messages = document.getElementById("messages");
   const sendBtn = document.getElementById("sendBtn");
 
-  // Send on Enter
   inputEl.addEventListener("keydown", (e) => {
     if (e.key === "Enter") send();
   });
@@ -87,15 +90,20 @@
         }
       );
 
-      if (!res.ok) {
-        throw new Error("HTTP " + res.status);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+
+      let botReply = await res.text();
+
+      // 🔑 HANDLE SESSION END
+      if (botReply.includes("[END_SESSION]")) {
+        botReply = botReply.replace("[END_SESSION]", "").trim();
+
+        // Reset session for next conversation
+        localStorage.removeItem("salesbot-session-id");
+        sessionId = getOrCreateSession();
       }
 
-      // TEXT MODE ONLY (matches your webhook)
-      const botReply = await res.text();
-
-      messages.innerHTML +=
-        `<div class="msg bot">Bot: ${botReply}</div>`;
+      messages.innerHTML += `<div class="msg bot">Bot: ${botReply}</div>`;
 
     } catch (err) {
       console.error("Frontend error:", err);
