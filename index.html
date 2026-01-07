@@ -38,7 +38,6 @@
 
 <div id="chat">
   <div id="messages"></div>
-
   <input id="input" placeholder="Type your message…" />
   <button onclick="send()">Send</button>
 </div>
@@ -57,7 +56,6 @@
     if (!msg) return;
 
     inputEl.value = "";
-
     const messages = document.getElementById("messages");
     messages.innerHTML += `<div class="msg user">You: ${msg}</div>`;
 
@@ -75,15 +73,7 @@
       );
 
       if (!res.ok) throw new Error("HTTP " + res.status);
-
-      const data = await res.json();
-      console.log("RAW RESPONSE:", data); // 🔍 debug once
-      const botReply =
-        data.answer ||
-        data.message ||
-        data.output?.message ||
-        (data.ready === true ? "Thanks! I have enough information." : "") ||
-        "No response from server";
+      const botReply = await res.text();
 
       messages.innerHTML +=
         `<div class="msg bot">Bot: ${botReply}</div>`;
