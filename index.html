@@ -44,6 +44,7 @@
 </div>
 
 <script>
+  // Stable session (DO NOT change between messages)
   let sessionId = localStorage.getItem("salesbot-session-id");
 
   if (!sessionId) {
@@ -74,24 +75,25 @@
         }
       );
 
-      const data = await res.json();
-      let botReply = "No response";
-
-      if (typeof data.answer === "string") {
-        botReply = data.answer;
-      } else if (typeof data.answer === "object" && data.answer?.text) {
-        botReply = data.answer.text;
-      } else if (typeof data.output === "string") {
-        botReply = data.output;
-      } else if (typeof data.message === "string") {
-        botReply = data.message;
+      if (!res.ok) {
+        throw new Error("HTTP " + res.status);
       }
 
-      messages.innerHTML += `<div class="msg bot">Bot: ${botReply}</div>`;
+      const data = await res.json();
+
+      // IMPORTANT: handle both followup + final responses
+      const botReply =
+        data.answer ||
+        data.message ||
+        "Thanks! Processing your request…";
+
+      messages.innerHTML +=
+        `<div class="msg bot">Bot: ${botReply}</div>`;
 
     } catch (err) {
       messages.innerHTML +=
-        `<div class="msg bot">Bot: Error connecting to server</div>`;
+        `<div class="msg bot">Bot: Server error. Please try again.</div>`;
+      console.error(err);
     }
   }
 </script>
