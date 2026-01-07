@@ -40,11 +40,11 @@
   <div id="messages"></div>
 
   <input id="input" placeholder="Type your message…" />
-  <button onclick="send()">Send</button>
+  <button id="sendBtn" onclick="send()">Send</button>
 </div>
 
 <script>
-  // Stable session (DO NOT change between messages)
+  // ✅ Stable session ID (CRITICAL for memory)
   let sessionId = localStorage.getItem("salesbot-session-id");
 
   if (!sessionId) {
@@ -54,13 +54,16 @@
 
   async function send() {
     const inputEl = document.getElementById("input");
+    const sendBtn = document.getElementById("sendBtn");
     const msg = inputEl.value.trim();
     if (!msg) return;
 
     inputEl.value = "";
+    sendBtn.disabled = true;
 
     const messages = document.getElementById("messages");
     messages.innerHTML += `<div class="msg user">You: ${msg}</div>`;
+    messages.scrollTop = messages.scrollHeight;
 
     try {
       const res = await fetch(
@@ -81,19 +84,22 @@
 
       const data = await res.json();
 
-      // IMPORTANT: handle both followup + final responses
+      // ✅ IMPORTANT: message FIRST, then answer
       const botReply =
-        data.answer ||
         data.message ||
+        data.answer ||
         "Thanks! Processing your request…";
 
       messages.innerHTML +=
         `<div class="msg bot">Bot: ${botReply}</div>`;
+      messages.scrollTop = messages.scrollHeight;
 
     } catch (err) {
       messages.innerHTML +=
         `<div class="msg bot">Bot: Server error. Please try again.</div>`;
       console.error(err);
+    } finally {
+      sendBtn.disabled = false;
     }
   }
 </script>
