@@ -74,6 +74,11 @@
       color: #323130;
     }
 
+    .typing {
+      font-style: italic;
+      opacity: 0.7;
+    }
+
     footer {
       padding: 12px;
       border-top: 1px solid #e1dfdd;
@@ -150,18 +155,38 @@
     messages.scrollTop = messages.scrollHeight;
   }
 
-  function restartConversation() {
-    messages.innerHTML = "";
-    localStorage.removeItem("salesbot-session-id");
-    sessionId = getOrCreateSession();
-    showWelcomeMessage();
+  function addTypingIndicator() {
+    const typingEl = document.createElement("div");
+    typingEl.className = "msg bot typing";
+    typingEl.id = "typing-indicator";
+    typingEl.innerText = "Thinking…";
+    messages.appendChild(typingEl);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function removeTypingIndicator() {
+    const el = document.getElementById("typing-indicator");
+    if (el) el.remove();
   }
 
   function showWelcomeMessage() {
     addBotMessage(
       "Hi! I’m your Sales Enablement Assistant.\n\n" +
-      "Tell me about your company, industry, or challenges, and I’ll recommend the right Solid Edge solutions. How may I help you?"
+      "Let’s start fresh. What industry is your client in?"
     );
+  }
+
+  function restartConversation() {
+    messages.innerHTML = "";
+    localStorage.removeItem("salesbot-session-id");
+    sessionId = getOrCreateSession();
+
+    // Inform backend to reset
+    fetch("https://theriacal-myrna-smirkily.ngrok-free.dev/webhook/web-sales-chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: "__RESTART__", sessionId })
+    }).finally(showWelcomeMessage);
   }
 
   inputEl.addEventListener("keydown", (e) => {
@@ -178,6 +203,8 @@
     messages.innerHTML += `<div class="msg user">${msg}</div>`;
     messages.scrollTop = messages.scrollHeight;
 
+    addTypingIndicator();
+
     try {
       const res = await fetch(
         "https://theriacal-myrna-smirkily.ngrok-free.dev/webhook/web-sales-chat",
@@ -191,10 +218,12 @@
       if (!res.ok) throw new Error("HTTP " + res.status);
 
       const botReply = await res.text();
+      removeTypingIndicator();
       addBotMessage(botReply);
 
     } catch (err) {
       console.error(err);
+      removeTypingIndicator();
       addBotMessage("Sorry, something went wrong. Please try again.");
     } finally {
       sendBtn.disabled = false;
