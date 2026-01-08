@@ -169,12 +169,14 @@
     if (el) el.remove();
   }
 
-  function showWelcomeMessage() {
-    addBotMessage(
-      "Hi! I’m your Sales Enablement Assistant.\n\n" +
-      "Let’s start fresh. What industry is your client in?"
-    );
-  }
+function showWelcomeMessage() {
+  addBotMessage(
+    "Welcome! I’m your Sales Enablement Assistant.\n\n" +
+    "I’ll help you recommend the right Siemens solutions and build a tailored, client-ready pitch. " +
+    "To do that, I’ll need a few details about the prospect and the company you’re working with.\n\n" +
+    "To begin, which industry does the client’s company operate in?"
+  );
+}
 
   function restartConversation() {
     messages.innerHTML = "";
@@ -235,3 +237,4 @@
 
 </body>
 </html>
+
