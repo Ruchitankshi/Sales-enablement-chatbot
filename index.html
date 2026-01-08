@@ -164,7 +164,7 @@
       if (!res.ok) throw new Error("HTTP " + res.status);
 
       const data = await res.json();
-      let botReply = data.message || "";
+      let botReply = data.message || data.answer || "";
 
       if (botReply.includes("[END_SESSION]")) {
         botReply = botReply.replace("[END_SESSION]", "").trim();
@@ -187,3 +187,4 @@
 
 </body>
 </html>
+
