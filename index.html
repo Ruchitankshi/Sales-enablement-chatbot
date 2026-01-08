@@ -73,6 +73,31 @@
       border-bottom-left-radius: 2px;
     }
 
+    /* 👇 Typing indicator */
+    .typing {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .typing span {
+      width: 6px;
+      height: 6px;
+      background: #605e5c;
+      border-radius: 50%;
+      animation: blink 1.4s infinite both;
+    }
+
+    .typing span:nth-child(1) { animation-delay: 0s; }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes blink {
+      0% { opacity: 0.2; }
+      20% { opacity: 1; }
+      100% { opacity: 0.2; }
+    }
+
     footer {
       padding: 12px;
       border-top: 1px solid #e1dfdd;
@@ -141,6 +166,24 @@
     if (e.key === "Enter") send();
   });
 
+  function showTyping() {
+    const div = document.createElement("div");
+    div.className = "msg bot";
+    div.id = "typing-indicator";
+    div.innerHTML = `
+      <div class="typing">
+        <span></span><span></span><span></span>
+      </div>
+    `;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function removeTyping() {
+    const el = document.getElementById("typing-indicator");
+    if (el) el.remove();
+  }
+
   async function send() {
     const msg = inputEl.value.trim();
     if (!msg) return;
@@ -150,6 +193,8 @@
 
     messages.innerHTML += `<div class="msg user">${msg}</div>`;
     messages.scrollTop = messages.scrollHeight;
+
+    showTyping();
 
     try {
       const res = await fetch(
@@ -162,7 +207,9 @@
       );
 
       if (!res.ok) throw new Error("HTTP " + res.status);
+
       const botReply = await res.text();
+      removeTyping();
 
       messages.innerHTML += `<div class="msg bot">${botReply}</div>`;
 
@@ -171,6 +218,7 @@
 
     } catch (err) {
       console.error(err);
+      removeTyping();
       messages.innerHTML +=
         `<div class="msg bot">Sorry, something went wrong. Please try again.</div>`;
     } finally {
