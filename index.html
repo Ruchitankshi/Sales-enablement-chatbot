@@ -1,50 +1,124 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sales Assist Bot</title>
+  <title>Sales Enablement Assistant</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f3f2f1;
       padding: 20px;
     }
+
     #chat {
-      max-width: 600px;
+      max-width: 720px;
       margin: auto;
-      background: #fff;
-      padding: 15px;
+      background: #ffffff;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      height: 80vh;
     }
+
+    header {
+      padding: 16px;
+      border-bottom: 1px solid #e1dfdd;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      color: #323130;
+    }
+
+    header h2 {
+      margin: 4px 0 0;
+      font-size: 13px;
+      font-weight: normal;
+      color: #605e5c;
+    }
+
+    #messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      background: #faf9f8;
+    }
+
     .msg {
-      margin: 10px 0;
+      max-width: 70%;
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      line-height: 1.4;
       white-space: pre-wrap;
+      font-size: 14px;
     }
+
     .user {
-      font-weight: bold;
+      margin-left: auto;
+      background: #c7e0f4;
+      color: #323130;
+      border-bottom-right-radius: 2px;
     }
+
     .bot {
-      color: #333;
+      margin-right: auto;
+      background: #edebe9;
+      color: #323130;
+      border-bottom-left-radius: 2px;
     }
+
+    footer {
+      padding: 12px;
+      border-top: 1px solid #e1dfdd;
+      display: flex;
+      gap: 8px;
+      background: #ffffff;
+    }
+
     #input {
-      width: 75%;
-      padding: 8px;
+      flex: 1;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #c8c6c4;
+      font-size: 14px;
     }
+
     button {
-      padding: 8px 12px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 4px;
+      background: #6264a7;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:disabled {
+      background: #a19f9d;
+      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
 
 <div id="chat">
+  <header>
+    <h1>Sales Enablement Assistant</h1>
+    <h2>Solid Edge Products Recommendations</h2>
+  </header>
+
   <div id="messages"></div>
-  <input id="input" placeholder="Type your message…" />
-  <button id="sendBtn" onclick="send()">Send</button>
+
+  <footer>
+    <input id="input" placeholder="Type your message…" />
+    <button id="sendBtn" onclick="send()">Send</button>
+  </footer>
 </div>
 
 <script>
@@ -74,7 +148,7 @@
     inputEl.value = "";
     sendBtn.disabled = true;
 
-    messages.innerHTML += `<div class="msg user">You: ${msg}</div>`;
+    messages.innerHTML += `<div class="msg user">${msg}</div>`;
     messages.scrollTop = messages.scrollHeight;
 
     try {
@@ -83,32 +157,27 @@
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            message: msg,
-            sessionId
-          })
+          body: JSON.stringify({ message: msg, sessionId })
         }
       );
 
       if (!res.ok) throw new Error("HTTP " + res.status);
 
-      let botReply = await res.text();
+      const data = await res.json();
+      let botReply = data.message || "";
 
-      // 🔑 HANDLE SESSION END
       if (botReply.includes("[END_SESSION]")) {
         botReply = botReply.replace("[END_SESSION]", "").trim();
-
-        // Reset session for next conversation
         localStorage.removeItem("salesbot-session-id");
         sessionId = getOrCreateSession();
       }
 
-      messages.innerHTML += `<div class="msg bot">Bot: ${botReply}</div>`;
+      messages.innerHTML += `<div class="msg bot">${botReply}</div>`;
 
     } catch (err) {
-      console.error("Frontend error:", err);
+      console.error(err);
       messages.innerHTML +=
-        `<div class="msg bot">Bot: Server error. Please try again.</div>`;
+        `<div class="msg bot">Sorry, something went wrong. Please try again.</div>`;
     } finally {
       sendBtn.disabled = false;
       messages.scrollTop = messages.scrollHeight;
