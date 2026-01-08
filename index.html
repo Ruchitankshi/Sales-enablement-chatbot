@@ -73,11 +73,9 @@
       border-bottom-left-radius: 2px;
     }
 
-    /* 👇 Typing indicator */
     .typing {
       display: inline-flex;
       gap: 6px;
-      align-items: center;
     }
 
     .typing span {
@@ -88,14 +86,13 @@
       animation: blink 1.4s infinite both;
     }
 
-    .typing span:nth-child(1) { animation-delay: 0s; }
-    .typing span:nth-child(2) { animation-delay: 0.2s; }
-    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    .typing span:nth-child(2) { animation-delay: .2s; }
+    .typing span:nth-child(3) { animation-delay: .4s; }
 
     @keyframes blink {
-      0% { opacity: 0.2; }
+      0% { opacity: .2; }
       20% { opacity: 1; }
-      100% { opacity: 0.2; }
+      100% { opacity: .2; }
     }
 
     footer {
@@ -126,7 +123,6 @@
 
     button:disabled {
       background: #a19f9d;
-      cursor: not-allowed;
     }
   </style>
 </head>
@@ -147,16 +143,26 @@
 </div>
 
 <script>
+  const WELCOME_MESSAGE =
+    "Hi! I’m your Sales Enablement Assistant.\n\n" +
+    "Tell me about your company, industry, or challenges, and I’ll recommend the right Solid Edge solutions. How may I help you? ";
+
+  function addWelcomeMessage() {
+    messages.innerHTML += `<div class="msg bot">${WELCOME_MESSAGE}</div>`;
+    messages.scrollTop = messages.scrollHeight;
+  }
+
   function getOrCreateSession() {
     let sid = localStorage.getItem("salesbot-session-id");
     if (!sid) {
       sid = "web-" + crypto.randomUUID();
       localStorage.setItem("salesbot-session-id", sid);
+      addWelcomeMessage(); // 👈 new session = welcome
     }
     return sid;
   }
 
-  let sessionId = getOrCreateSession();
+  let sessionId;
 
   const inputEl = document.getElementById("input");
   const messages = document.getElementById("messages");
@@ -170,11 +176,7 @@
     const div = document.createElement("div");
     div.className = "msg bot";
     div.id = "typing-indicator";
-    div.innerHTML = `
-      <div class="typing">
-        <span></span><span></span><span></span>
-      </div>
-    `;
+    div.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
   }
@@ -206,26 +208,26 @@
         }
       );
 
-      if (!res.ok) throw new Error("HTTP " + res.status);
+      if (!res.ok) throw new Error();
 
-      const botReply = await res.text();
+      const reply = await res.text();
       removeTyping();
 
-      messages.innerHTML += `<div class="msg bot">${botReply}</div>`;
+      messages.innerHTML += `<div class="msg bot">${reply}</div>`;
 
       localStorage.removeItem("salesbot-session-id");
       sessionId = getOrCreateSession();
 
-    } catch (err) {
-      console.error(err);
+    } catch {
       removeTyping();
-      messages.innerHTML +=
-        `<div class="msg bot">Sorry, something went wrong. Please try again.</div>`;
+      messages.innerHTML += `<div class="msg bot">Sorry, something went wrong.</div>`;
     } finally {
       sendBtn.disabled = false;
       messages.scrollTop = messages.scrollHeight;
     }
   }
+
+  sessionId = getOrCreateSession();
 </script>
 
 </body>
