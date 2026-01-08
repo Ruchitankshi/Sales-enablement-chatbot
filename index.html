@@ -162,15 +162,12 @@
       );
 
       if (!res.ok) throw new Error("HTTP " + res.status);
+      const botReply = await res.text();
 
-      const data = await res.json();
-
-      const botReply = data.message || data.answer || "";
       messages.innerHTML += `<div class="msg bot">${botReply}</div>`;
-      if (data.endSession === true) {
-        localStorage.removeItem("salesbot-session-id");
-        sessionId = getOrCreateSession();
-      }
+
+      localStorage.removeItem("salesbot-session-id");
+      sessionId = getOrCreateSession();
 
     } catch (err) {
       console.error(err);
