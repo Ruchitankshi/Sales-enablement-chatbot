@@ -164,15 +164,13 @@
       if (!res.ok) throw new Error("HTTP " + res.status);
 
       const data = await res.json();
-      let botReply = data.message || data.answer || "";
 
-      if (botReply.includes("[END_SESSION]")) {
-        botReply = botReply.replace("[END_SESSION]", "").trim();
+      const botReply = data.message || data.answer || "";
+      messages.innerHTML += `<div class="msg bot">${botReply}</div>`;
+      if (data.endSession === true) {
         localStorage.removeItem("salesbot-session-id");
         sessionId = getOrCreateSession();
       }
-
-      messages.innerHTML += `<div class="msg bot">${botReply}</div>`;
 
     } catch (err) {
       console.error(err);
@@ -187,4 +185,3 @@
 
 </body>
 </html>
-
